@@ -1,0 +1,957 @@
+
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="UTF-8">
+        <title>Simple 360° Viewer with Hotspot</title>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/FontLoader.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/geometries/TextGeometry.js"></script>
+        <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+        <style>
+            body { 
+                margin: 0; 
+                overflow: hidden; 
+                font-family: 'Poppins', sans-serif;
+            }
+
+            #hotspot {
+                position: absolute;
+                width: 40px; height: 40px;
+                background: rgba(255,165,0,0.8);
+                border-radius: 50%;
+                left: 50%; top: 50%;
+                transform: translate(-50%, -50%);
+                z-index: 10;
+                cursor: pointer;
+                display: flex; align-items: center; justify-content: center;
+                font-size: 24px; color: #fff; font-weight: bold;
+                border: 2px solid #fff;
+            }
+            #hotspot:hover { background: orange; }
+
+            /* Shop Popup Styles */
+            .shop-popup {
+                display: none;
+                position: fixed;
+                top: 50%;
+                left: 50%;
+                transform: translate(-50%, -50%);
+                background: rgba(255, 255, 255, 0.95);
+                padding: 30px;
+                border-radius: 20px;
+                box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+                z-index: 1000;
+                width: 90%;
+                max-width: 1200px;
+                max-height: 85vh;
+                overflow-y: auto;
+                backdrop-filter: blur(10px);
+                animation: popupFadeIn 0.3s ease-out;
+            }
+
+            @keyframes popupFadeIn {
+                from { 
+                    opacity: 0;
+                    transform: translate(-50%, -48%);
+                }
+                to { 
+                    opacity: 1;
+                    transform: translate(-50%, -50%);
+                }
+            }
+
+            .shop-popup.active {
+                display: block;
+            }
+
+            .shop-overlay {
+                display: none;
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                background: rgba(0,0,0,0.6);
+                backdrop-filter: blur(5px);
+                z-index: 999;
+                animation: overlayFadeIn 0.3s ease-out;
+            }
+
+            @keyframes overlayFadeIn {
+                from { opacity: 0; }
+                to { opacity: 1; }
+            }
+
+            .shop-overlay.active {
+                display: block;
+            }
+
+            .shop-header {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                margin-bottom: 30px;
+                padding-bottom: 15px;
+                border-bottom: 2px solid #f0f0f0;
+            }
+
+            .shop-header h2 {
+                margin: 0;
+                color: #2c3e50;
+                font-size: 28px;
+                font-weight: 600;
+            }
+
+            .shop-close {
+                cursor: pointer;
+                font-size: 28px;
+                color: #666;
+                width: 40px;
+                height: 40px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                border-radius: 50%;
+                transition: all 0.3s ease;
+            }
+
+            .shop-close:hover {
+                background: #f0f0f0;
+                color: #e74c3c;
+            }
+
+            .shop-products {
+                display: grid;
+                grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+                gap: 30px;
+                padding: 20px 0;
+            }
+
+            .product-card {
+                background: white;
+                border-radius: 15px;
+                padding: 20px;
+                text-align: center;
+                transition: all 0.3s ease;
+                border: 1px solid #eee;
+                position: relative;
+                overflow: hidden;
+            }
+
+            .product-card:hover {
+                transform: translateY(-10px);
+                box-shadow: 0 15px 30px rgba(0,0,0,0.1);
+                border-color: #4CAF50;
+            }
+
+            .product-card::before {
+                content: '';
+                position: absolute;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                background: linear-gradient(45deg, transparent, rgba(255,255,255,0.1), transparent);
+                transform: translateX(-100%);
+                transition: 0.5s;
+            }
+
+            .product-card:hover::before {
+                transform: translateX(100%);
+            }
+
+            .product-image {
+                width: 100%;
+                height: 200px;
+                object-fit: cover;
+                border-radius: 10px;
+                margin-bottom: 15px;
+                transition: transform 0.3s ease;
+            }
+
+            .product-card:hover .product-image {
+                transform: scale(1.05);
+            }
+
+            .product-title {
+                font-weight: 600;
+                margin-bottom: 10px;
+                color: #2c3e50;
+                font-size: 18px;
+            }
+
+            .product-price {
+                color: #e74c3c;
+                font-weight: 600;
+                font-size: 20px;
+                margin-bottom: 15px;
+            }
+
+            .add-to-cart-btn {
+                background: #4CAF50;
+                color: white;
+                border: none;
+                padding: 12px 20px;
+                border-radius: 8px;
+                cursor: pointer;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                gap: 8px;
+                width: 100%;
+                font-size: 16px;
+                font-weight: 500;
+                transition: all 0.3s ease;
+            }
+
+            .add-to-cart-btn:hover {
+                background: #45a049;
+                transform: translateY(-2px);
+                box-shadow: 0 5px 15px rgba(76, 175, 80, 0.3);
+            }
+
+            .add-to-cart-btn:active {
+                transform: translateY(0);
+            }
+
+            .view-cart-btn {
+                background: #2196F3;
+                color: white;
+                border: none;
+                padding: 15px 30px;
+                border-radius: 8px;
+                cursor: pointer;
+                margin-top: 20px;
+                width: 100%;
+                font-size: 16px;
+                font-weight: 500;
+                transition: all 0.3s ease;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                gap: 8px;
+            }
+
+            .view-cart-btn:hover {
+                background: #1976D2;
+                transform: translateY(-2px);
+                box-shadow: 0 5px 15px rgba(33, 150, 243, 0.3);
+            }
+
+            .view-cart-btn:active {
+                transform: translateY(0);
+            }
+
+            .success-message {
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                background: #4CAF50;
+                color: white;
+                padding: 15px 25px;
+                border-radius: 10px;
+                z-index: 1002;
+                display: none;
+                animation: slideIn 0.5s ease-out;
+                box-shadow: 0 5px 15px rgba(76, 175, 80, 0.3);
+                font-weight: 500;
+            }
+
+            @keyframes slideIn {
+                from { 
+                    transform: translateX(100%);
+                    opacity: 0;
+                }
+                to { 
+                    transform: translateX(0);
+                    opacity: 1;
+                }
+            }
+
+            /* Responsive Design */
+            @media (max-width: 768px) {
+                .shop-popup {
+                    width: 95%;
+                    padding: 20px;
+                }
+
+                .shop-header h2 {
+                font-size: 24px;
+                }
+
+                .shop-products {
+                    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+                    gap: 20px;
+                }
+
+                .product-image {
+                    height: 180px;
+                }
+            }
+
+            @media (max-width: 480px) {
+                .shop-popup {
+                    padding: 15px;
+                }
+
+                .shop-header h2 {
+                    font-size: 20px;
+                }
+
+                .shop-products {
+                    grid-template-columns: 1fr;
+                }
+
+                .product-image {
+                    height: 160px;
+                }
+            }
+
+            /* Cart Styles */
+            .cart-icon {
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                background: #4CAF50;
+                color: white;
+                padding: 10px 15px;
+                border-radius: 5px;
+                cursor: pointer;
+                z-index: 1001;
+                display: flex;
+                align-items: center;
+                gap: 10px;
+            }
+
+            .cart-count {
+                background: white;
+                color: #4CAF50;
+                padding: 2px 8px;
+                border-radius: 10px;
+                font-weight: bold;
+            }
+
+            .cart-popup {
+                display: none;
+                position: fixed;
+                top: 50%;
+                left: 50%;
+                transform: translate(-50%, -50%);
+                background: white;
+                padding: 20px;
+                border-radius: 10px;
+                box-shadow: 0 0 20px rgba(0,0,0,0.3);
+                z-index: 1000;
+                width: 90%;
+                max-width: 600px;
+                max-height: 80vh;
+                overflow-y: auto;
+            }
+
+            .cart-popup.active {
+                display: block;
+            }
+
+            .cart-items {
+                margin: 20px 0;
+            }
+
+            .cart-item {
+                display: flex;
+                align-items: center;
+                padding: 10px;
+                border-bottom: 1px solid #eee;
+            }
+
+            .cart-item-image {
+                width: 80px;
+                height: 80px;
+                object-fit: cover;
+                border-radius: 4px;
+                margin-right: 15px;
+            }
+
+            .cart-item-details {
+                flex-grow: 1;
+            }
+
+            .cart-item-title {
+                font-weight: bold;
+                margin-bottom: 5px;
+            }
+
+            .cart-item-price {
+                color: #e44d26;
+            }
+
+            .cart-item-quantity {
+                display: flex;
+                align-items: center;
+                gap: 10px;
+                margin: 0 20px;
+            }
+
+            .quantity-btn {
+                background: #f0f0f0;
+                border: none;
+                width: 25px;
+                height: 25px;
+                border-radius: 4px;
+                cursor: pointer;
+            }
+
+            .remove-btn {
+                color: #ff4444;
+                background: none;
+                border: none;
+                cursor: pointer;
+                padding: 5px;
+            }
+
+            .cart-total {
+                text-align: right;
+                font-size: 1.2em;
+                font-weight: bold;
+                margin-top: 20px;
+                padding-top: 20px;
+                border-top: 2px solid #eee;
+            }
+
+            .checkout-btn {
+                background: #4CAF50;
+                color: white;
+                border: none;
+                padding: 10px 20px;
+                border-radius: 5px;
+                cursor: pointer;
+                float: right;
+                margin-top: 10px;
+            }
+
+            .checkout-btn:hover {
+                background: #45a049;
+            }
+        </style>
+    </head>
+    <body>
+        <div id="hotspot" style="display:none;">→</div>
+        
+        <!-- Success Message -->
+        <div class="success-message" id="successMessage">
+            <i class="fa fa-circle-check"></i> Added to cart successfully!
+        </div>
+
+
+        
+        <!-- Shop Popup -->
+        <div class="shop-overlay" id="shopOverlay"></div>
+        <div class="shop-popup" id="shopPopup">
+            <div class="shop-header">
+                <h2>Village Shop</h2>
+                <span class="shop-close" onclick="closeShop()"><i class="fa fa-times"></i></span>
+            </div>
+            <div class="shop-products">
+                <%-- Debug output --%>
+                <c:if test="${empty products}">
+                    <p style="color: red;">No products available</p>
+                </c:if>
+                <c:if test="${not empty products}">
+                    <p style="color: green;">Number of products: ${products.size()}</p>
+                </c:if>
+                
+                <c:forEach var="product" items="${products}">
+                    <div class="product-card">
+                        <img src="${product.mainImageUrl}" class="product-image" alt="${product.name}">
+                        <div class="product-title">${product.name}</div>
+                        <div class="product-price">${product.price}₫</div>
+                        <button class="add-to-cart-btn"
+                            data-id="${product.pid}"
+                            data-title="${fn:escapeXml(product.name)}"
+                            data-price="${product.price}"
+                            data-image="${fn:escapeXml(product.mainImageUrl)}"
+                            onclick="addToCartFromBtn(this)">
+                            <i class="fa fa-cart-shopping"></i> Add to Cart
+                        </button>
+                    </div>
+                </c:forEach>
+            </div>
+            <button class="view-cart-btn" onclick="viewCart()">
+                <i class="fa fa-bag-shopping"></i> View Cart on Website
+            </button>
+        </div>
+
+        <script>
+            let camera, scene, renderer, sphere, hotspotMesh;
+            let lon = 0, lat = 0, isUserInteracting = false;
+            let onPointerDownPointerX = 0, onPointerDownPointerY = 0;
+            let onPointerDownLon = 0, onPointerDownLat = 0;
+            let currentPanorama = 1;
+            let raycaster = new THREE.Raycaster();
+            let mouse = new THREE.Vector2();
+            let font; // Biến để lưu font
+
+            // Lấy villageID từ URL
+            function getVillageID() {
+                const params = new URLSearchParams(window.location.search);
+                return params.get('villageID') || 1;
+            }
+            const villageID = getVillageID();
+
+            // Danh sách sản phẩm động
+            let products = [];
+
+            // Dùng đúng tên file của bạn
+            const panoramas = {
+                1: "hinhanh/panorama/1_1.jpg",
+                2: "hinhanh/panorama/1_2.jpg"
+            };
+
+            // Load font trước khi khởi tạo scene
+            const fontLoader = new THREE.FontLoader();
+            fontLoader.load('https://threejs.org/examples/fonts/helvetiker_regular.typeface.json', function(loadedFont) {
+                font = loadedFont;
+                init();
+                animate();
+            });
+
+            function getSpherePositionFromEquirectangular(x, y, imgWidth, imgHeight, radius) {
+                // x: ngang (0 bên trái, imgWidth bên phải)
+                // y: dọc (0 trên, imgHeight dưới)
+                const theta = (x / imgWidth) * Math.PI * 2; // kinh độ (0~2PI)
+                const phi = (y / imgHeight) * Math.PI;      // vĩ độ (0~PI)
+                // Chuyển sang hệ tọa độ Three.js
+                return {
+                    x: radius * Math.sin(phi) * Math.cos(theta),
+                    y: radius * Math.cos(phi),
+                    z: radius * Math.sin(phi) * Math.sin(theta)
+                };
+            }
+
+            // Thêm hàm mở/đóng shop
+            function openShop() {
+                document.getElementById('shopPopup').classList.add('active');
+                document.getElementById('shopOverlay').classList.add('active');
+            }
+
+            function closeShop() {
+                document.getElementById('shopPopup').classList.remove('active');
+                document.getElementById('shopOverlay').classList.remove('active');
+            }
+
+            // Cart functionality
+            let cart = [];
+
+            function toggleCart() {
+                const cartPopup = document.getElementById('cartPopup');
+                cartPopup.classList.toggle('active');
+                document.getElementById('shopOverlay').classList.toggle('active');
+            }
+
+            function addToCart(productId, title, price, image) {
+                // Gọi API thêm vào giỏ hàng của website chính
+                fetch('http://localhost:8080/DuAnBanHang/api/cart/add', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        productId: productId,
+                        quantity: 1,
+                        price: price,
+                        title: title,
+                        image: image
+                    })
+                })
+                .then(response => {
+                    if (response.ok) {
+                        showSuccessMessage();
+                    } else {
+                        alert('Failed to add to cart. Please try again.');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error adding to cart:', error);
+                    alert('Error adding to cart. Please try again.');
+                });
+            }
+
+            function removeFromCart(productId) {
+                cart = cart.filter(item => item.id !== productId);
+                updateCart();
+            }
+
+            function updateQuantity(productId, delta) {
+                const item = cart.find(item => item.id === productId);
+                if (item) {
+                    item.quantity += delta;
+                    if (item.quantity <= 0) {
+                        removeFromCart(productId);
+                    } else {
+                        updateCart();
+                    }
+                }
+            }
+
+            function updateCart() {
+                const cartItems = document.getElementById('cartItems');
+                const cartCount = document.getElementById('cartCount');
+                const cartTotal = document.getElementById('cartTotal');
+                
+                // Update cart count
+                const totalItems = cart.reduce((sum, item) => sum + item.quantity, 0);
+                cartCount.textContent = totalItems;
+
+                // Update cart items
+                cartItems.innerHTML = cart.map(item => `
+                    <div class="cart-item">
+                        <img src="${item.image}" class="cart-item-image" alt="${item.title}">
+                        <div class="cart-item-details">
+                            <div class="cart-item-title">${item.title}</div>
+                            <div class="cart-item-price">$${item.price.toFixed(2)}</div>
+                        </div>
+                        <div class="cart-item-quantity">
+                            <button class="quantity-btn" onclick="updateQuantity(${item.id}, -1)">-</button>
+                            <span>${item.quantity}</span>
+                            <button class="quantity-btn" onclick="updateQuantity(${item.id}, 1)">+</button>
+                        </div>
+                        <button class="remove-btn" onclick="removeFromCart(${item.id})"><i class="fa fa-trash"></i></button>
+                    </div>
+                `).join('');
+
+                // Update total
+                const total = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+                cartTotal.textContent = total.toFixed(2);
+            }
+
+            function checkout() {
+                if (cart.length === 0) {
+                    alert('Your cart is empty!');
+                    return;
+                }
+                alert('Thank you for your purchase! Total: $' + 
+                    cart.reduce((sum, item) => sum + (item.price * item.quantity), 0).toFixed(2));
+                cart = [];
+                updateCart();
+                toggleCart();
+            }
+
+            function showSuccessMessage() {
+                const message = document.getElementById('successMessage');
+                message.style.display = 'block';
+                setTimeout(() => {
+                    message.style.display = 'none';
+                }, 3000);
+            }
+
+            function viewCart() {
+                // Chuyển hướng đến trang giỏ hàng của website chính
+                window.open('http://localhost:8080/DuAnBanHang/cart', '_blank');
+            }
+
+            function addToCartFromBtn(btn) {
+                const id = btn.getAttribute('data-id');
+                const title = btn.getAttribute('data-title');
+                const price = btn.getAttribute('data-price');
+                const image = btn.getAttribute('data-image');
+                addToCart(id, title, price, image);
+            }
+
+            // Khai báo các hotspot cho từng panorama
+            // Ví dụ: [{x: 800, y: 250, action: () => loadPanorama(2)}]
+            const hotspotData = {
+                1: [
+                    { 
+                        x: 650,
+                        y: 250,
+                        imgWidth: 1536, 
+                        imgHeight: 768, 
+                        action: () => loadPanorama(2) 
+                    },
+                    {
+                        x: 900,
+                        y: 300,
+                        imgWidth: 1536,
+                        imgHeight: 768,
+                        action: () => openShop()
+                    }
+                ],
+                2: [
+                    { 
+                        x: 1290, 
+                        y: 450, 
+                        imgWidth: 1536, 
+                        imgHeight: 768, 
+                        action: () => loadPanorama(1) 
+                    },
+                ]
+            };
+
+            let hotspotMeshes = [];
+
+            function init() {
+                camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 1, 1100);
+                camera.target = new THREE.Vector3(0, 0, 0);
+
+                scene = new THREE.Scene();
+
+                // Thêm ánh sáng
+                const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
+                scene.add(ambientLight);
+
+                const directionalLight = new THREE.DirectionalLight(0xffffff, 0.8);
+                directionalLight.position.set(0, 1, 1);
+                scene.add(directionalLight);
+
+                renderer = new THREE.WebGLRenderer();
+                renderer.setPixelRatio(window.devicePixelRatio);
+                renderer.setSize(window.innerWidth, window.innerHeight);
+                document.body.appendChild(renderer.domElement);
+
+                loadPanorama(currentPanorama);
+
+                document.addEventListener('mousedown', onPointerDown, false);
+                document.addEventListener('mousemove', onPointerMove, false);
+                document.addEventListener('mouseup', onPointerUp, false);
+                document.addEventListener('wheel', onDocumentMouseWheel, false);
+                window.addEventListener('resize', onWindowResize, false);
+
+                renderer.domElement.addEventListener('click', onCanvasClick, false);
+
+                // Thêm sự kiện touch cho thiết bị di động
+                renderer.domElement.addEventListener('touchstart', function(event) {
+                    event.preventDefault();
+                    const touch = event.touches[0];
+                    const mouseEvent = new MouseEvent('click', {
+                        clientX: touch.clientX,
+                        clientY: touch.clientY
+                    });
+                    onCanvasClick(mouseEvent);
+                }, false);
+            }
+
+            function loadPanorama(num) {
+                currentPanorama = num;
+                
+                // Xóa sphere cũ nếu tồn tại
+                if (sphere) {
+                    scene.remove(sphere);
+                    if (sphere.geometry) sphere.geometry.dispose();
+                    if (sphere.material) sphere.material.dispose();
+                }
+
+                // Xóa các hotspot cũ
+                hotspotMeshes.forEach(mesh => {
+                    scene.remove(mesh);
+                    mesh.traverse((child) => {
+                        if (child.geometry) child.geometry.dispose();
+                        if (child.material) {
+                            if (Array.isArray(child.material)) {
+                                child.material.forEach(material => material.dispose());
+                            } else {
+                                child.material.dispose();
+                            }
+                        }
+                    });
+                });
+                hotspotMeshes = [];
+
+                // Load panorama mới
+                const textureLoader = new THREE.TextureLoader();
+                textureLoader.load(panoramas[num], function(texture) {
+                    const geometry = new THREE.SphereGeometry(500, 60, 40);
+                    geometry.scale(-1, 1, 1);
+                    const material = new THREE.MeshBasicMaterial({ map: texture });
+                    sphere = new THREE.Mesh(geometry, material);
+                    scene.add(sphere);
+
+                    // Tạo các hotspot mới
+                    if (hotspotData[num]) {
+                        hotspotData[num].forEach(hotspot => {
+                            if (hotspot.action.toString().includes('loadPanorama')) {
+                                // Hotspot cho chuyển panorama - icon mũi tên 2D
+                                const arrowGeometry = new THREE.CircleGeometry(30, 32);
+                                const arrowMaterial = new THREE.MeshPhongMaterial({ 
+                                    color: 0xffffff,
+                                    specular: 0x111111,
+                                    shininess: 30,
+                                    side: THREE.DoubleSide,
+                                    transparent: true,
+                                    opacity: 0.8
+                                });
+                                
+                                const mesh = new THREE.Mesh(arrowGeometry, arrowMaterial);
+                                
+                                // Tạo mũi tên 2D bằng hình tam giác
+                                const arrowShape = new THREE.Shape();
+                                arrowShape.moveTo(0, -20);
+                                arrowShape.lineTo(15, 0);
+                                arrowShape.lineTo(0, 20);
+                                arrowShape.lineTo(-15, 0);
+                                arrowShape.lineTo(0, -20);
+                                
+                                const arrowHeadGeometry = new THREE.ShapeGeometry(arrowShape);
+                                const arrowHeadMaterial = new THREE.MeshPhongMaterial({ 
+                                    color: 0x4CAF50,
+                                    specular: 0x111111,
+                                    shininess: 30,
+                                    side: THREE.DoubleSide
+                                });
+                                const arrowHead = new THREE.Mesh(arrowHeadGeometry, arrowHeadMaterial);
+                                
+                                const group = new THREE.Group();
+                                group.add(mesh);
+                                group.add(arrowHead);
+                                
+                                // Thêm userData vào tất cả các thành phần
+                                mesh.userData.action = hotspot.action;
+                                arrowHead.userData.action = hotspot.action;
+                                group.userData.action = hotspot.action;
+                                
+                                const pos = getSpherePositionFromEquirectangular(hotspot.x, hotspot.y, hotspot.imgWidth, hotspot.imgHeight, 500);
+                                group.position.set(pos.x, pos.y, pos.z);
+                                group.lookAt(camera.position);
+                                scene.add(group);
+                                hotspotMeshes.push(group);
+                            } else {
+                                // Hotspot cho mở shop - icon cửa hàng 2D
+                                const shopGeometry = new THREE.CircleGeometry(30, 32);
+                                const shopMaterial = new THREE.MeshPhongMaterial({ 
+                                    color: 0xffffff,
+                                    specular: 0x111111,
+                                    shininess: 30,
+                                    side: THREE.DoubleSide,
+                                    transparent: true,
+                                    opacity: 0.8
+                                });
+                                
+                                const mesh = new THREE.Mesh(shopGeometry, shopMaterial);
+                                
+                                // Tạo icon cửa hàng 2D
+                                const shopShape = new THREE.Shape();
+                                // Vẽ thân nhà
+                                shopShape.moveTo(-15, -15);
+                                shopShape.lineTo(15, -15);
+                                shopShape.lineTo(15, 15);
+                                shopShape.lineTo(-15, 15);
+                                shopShape.lineTo(-15, -15);
+                                // Vẽ mái nhà
+                                shopShape.moveTo(-20, -15);
+                                shopShape.lineTo(0, -25);
+                                shopShape.lineTo(20, -15);
+                                
+                                const shopIconGeometry = new THREE.ShapeGeometry(shopShape);
+                                const shopIconMaterial = new THREE.MeshPhongMaterial({ 
+                                    color: 0x4CAF50,
+                                    specular: 0x111111,
+                                    shininess: 30,
+                                    side: THREE.DoubleSide
+                                });
+                                const shopIcon = new THREE.Mesh(shopIconGeometry, shopIconMaterial);
+                                
+                                const group = new THREE.Group();
+                                group.add(mesh);
+                                group.add(shopIcon);
+                                
+                                // Thêm userData vào tất cả các thành phần
+                                mesh.userData.action = hotspot.action;
+                                shopIcon.userData.action = hotspot.action;
+                                group.userData.action = hotspot.action;
+                                
+                                const pos = getSpherePositionFromEquirectangular(hotspot.x, hotspot.y, hotspot.imgWidth, hotspot.imgHeight, 500);
+                                group.position.set(pos.x, pos.y, pos.z);
+                                group.lookAt(camera.position);
+                                scene.add(group);
+                                hotspotMeshes.push(group);
+                            }
+                        });
+                    }
+                });
+            }
+
+            function onCanvasClick(event) {
+                // Tính toán vị trí chuột trong không gian chuẩn hóa (-1 đến 1)
+                mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
+                mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
+
+                // Cập nhật raycaster với vị trí chuột và camera
+                raycaster.setFromCamera(mouse, camera);
+
+                // Kiểm tra va chạm với tất cả các hotspot
+                const intersects = raycaster.intersectObjects(hotspotMeshes, true);
+
+                if (intersects.length > 0) {
+                    // Tìm hotspot gần nhất
+                    const closestIntersect = intersects[0];
+                    
+                    // Tìm parent group chứa hotspot
+                    let parent = closestIntersect.object;
+                    while (parent && !parent.userData.action) {
+                        parent = parent.parent;
+                    }
+
+                    if (parent && parent.userData.action) {
+                        // Thực hiện action của hotspot
+                        parent.userData.action();
+                    }
+                }
+            }
+
+            function onPointerDown(event) {
+                isUserInteracting = true;
+                onPointerDownPointerX = event.clientX;
+                onPointerDownPointerY = event.clientY;
+                onPointerDownLon = lon;
+                onPointerDownLat = lat;
+            }
+
+            function onPointerMove(event) {
+                if (isUserInteracting) {
+                    lon = (onPointerDownPointerX - event.clientX) * 0.1 + onPointerDownLon;
+                    lat = (event.clientY - onPointerDownPointerY) * 0.1 + onPointerDownLat;
+                }
+            }
+
+            function onPointerUp() {
+                isUserInteracting = false;
+            }
+
+            function onDocumentMouseWheel(event) {
+                camera.fov += event.deltaY * 0.05;
+                camera.fov = THREE.MathUtils.clamp(camera.fov, 30, 100);
+                camera.updateProjectionMatrix();
+            }
+
+            function onWindowResize() {
+                camera.aspect = window.innerWidth / window.innerHeight;
+                camera.updateProjectionMatrix();
+                renderer.setSize(window.innerWidth, window.innerHeight);
+            }
+
+            function animate() {
+                requestAnimationFrame(animate);
+                update();
+            }
+
+            function update() {
+                lat = Math.max(-85, Math.min(85, lat));
+                const phi = THREE.MathUtils.degToRad(90 - lat);
+                const theta = THREE.MathUtils.degToRad(lon);
+
+                camera.position.x = 500 * Math.sin(phi) * Math.cos(theta);
+                camera.position.y = 500 * Math.cos(phi);
+                camera.position.z = 500 * Math.sin(phi) * Math.sin(theta);
+
+                camera.lookAt(0, 0, 0);
+                
+                // Cập nhật hướng của các hotspot
+                hotspotMeshes.forEach(mesh => {
+                    mesh.lookAt(camera.position);
+                });
+                
+                renderer.render(scene, camera);
+            }
+        </script>
+    </body>
+</html> 

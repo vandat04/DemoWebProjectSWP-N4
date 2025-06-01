@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<header id="header" class="header-area style-01">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+
+
+    <!-- Thêm script trình phát nhạc -->
+    <script src="assets/js/music-player.js"></script>
+    <link rel="stylesheet" href="assets/css/bootstrap.min.css">
+    <link rel="stylesheet" href="assets/css/animate.min.css">
+    <link rel="stylesheet" href="assets/css/font-awesome.min.css">
+    <link rel="stylesheet" href="assets/css/nice-select.css">
+    <link rel="stylesheet" href="assets/css/slick.min.css">
+    <link rel="stylesheet" href="assets/css/style.css">
+    <link rel="stylesheet" href="assets/css/main-color03-green.css">
+    <script src="assets/js/music-player.js"></script>
+
+    <style>
+        /* Kiểu dáng cho nút bật/tắt nhạc */
+        .music-toggle-btn {
+            background: none;
+            border: none;
+            cursor: pointer;
+            padding: 8px 12px;
+            color: #4CAF50;
+            font-size: 18px;
+        }
+        .music-toggle-btn:focus {
+            outline: none;
+        }
+    </style>
+    <div class="header-top bg-main hidden-xs">
+        <div class="container">
+            <div class="top-bar left">
+                <ul class="horizontal-menu">
+                    <li>
+                        <a href="mailto:dcvhoang.work@gmail.com?subject=Phản Hồi Về Chất Lượng Sản phẩm email&body=Nội dung email">
+                            <i class="fa fa-envelope" aria-hidden="true"></i>dcvhoang.work@gmail.com
+                        </a>
+                    </li>
+
+                    <li><a href="https://www.youtube.com/@Achipdichdao" target="_blank"><i class="fa fa-facebook" aria-hidden="true"></i>Da Nang Craft Village</a></li>
+                </ul>
+            </div>
+            <div class="top-bar right" style="max-width: unset !important;">
+                <a href="Login.html" class="login-link">
+                    <i class="biolife-icon icon-login"></i>Login/Register</a>
+                 <a href="UserProfile.html" class="login-link">
+                    <i class="biolife-icon icon-login"></i>User Edit Profile</a>
+                <a href="EditAccount.html" class="login-link">
+                    <i class="biolife-icon icon-login"></i>Admin Edit Profile</a>
+            </div>
+        </div>
+    </div>
+
+    <div class="header-middle biolife-sticky-object">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-3 col-md-2 col-md-6 col-xs-6">
+                    <a href="index.html" class="biolife-logo"><img src="hinhanh/Logo/logocraft.png" alt="craft logo" width="220" height="60"></a>
+                </div>
+                <div class="col-lg-6 col-md-7 hidden-sm hidden-xs">
+                    <div class="primary-menu">
+                        <ul class="menu biolife-menu clone-main-menu clone-primary-menu" id="primary-menu" data-menuname="main menu">
+                            <li class="menu-item">
+                                <button id="musicToggleBtn" class="music-toggle-btn" onclick="toggleMusic()" title="Tắt nhạc">
+                                    <i class="fas fa-volume-up"></i>
+                                </button>
+                            </li>
+                            <li class="menu-item"><a href="index.html">Home</a></li>
+                            <li class="menu-item menu-item-has-children has-child">
+                                <a href="#" class="menu-name" data-title="Shop">Shop</a>
+                                <ul class="sub-menu">
+                                    <li class="menu-item"><a href="#">Thanh Ha</a></li>
+                                    <li class="menu-item"><a href="#">Nam O</a></li>
+                                    <li class="menu-item"><a href="#">Duy Xuyen</a></li>
+                                </ul>
+                            </li>
+                            <li class="menu-item menu-item-has-children has-child">
+                                <a href="#" class="menu-name" data-title="Craft Types">Craft Types</a>
+                                <ul class="sub-menu">
+                                    <li class="menu-item"><a href="craft?type=pottery">Gom Su</a></li>
+                                    <li class="menu-item"><a href="craft?type=wood">Dieu Khac Go</a></li>
+                                    <li class="menu-item"><a href="craft?type=lacquer">Son Mai</a></li>
+                                    <li class="menu-item"><a href="craft?type=silk">Lua</a></li>
+                                </ul>
+                            </li>
+                            <li class="menu-item">
+                                <a href="tour360.html" class="menu-name">360 Tour</a>
+                            </li>
+                            <li class="menu-item menu-item-has-children has-child">
+                                <a href="#" class="menu-name" data-title="Craft Villages">Craft Villages</a>
+                                <ul class="sub-menu">
+                                    <ul class="sub-menu">
+                                        <li class="menu-item"><a href="#">Thanh Ha</a></li>
+                                        <li class="menu-item"><a href="#">Nam O</a></li>
+                                        <li class="menu-item"><a href="#">Duy Xuyen</a></li>
+                                    </ul>
+                                </ul>
+                            </li>
+
+
+                            <li class="menu-item"><a href="dashboard.html">Dashboard</a></li>
+                            <li class="menu-item"><a href="ManagerAccount.html">Manage Accounts</a></li>
+
+
+
+                            <li class="menu-item"><a href="ManagerProduct.html">Manage Products</a></li>
+
+
+                        </ul>
+                    </div>
+
+                </div>
+                <div class="col-lg-3 col-md-3 col-md-6 col-xs-6">
+                    <div class="biolife-cart-info">
+                        <!-- Mobile search -->
+                        <div class="mobile-search">
+                            <a href="javascript:void(0)" class="open-searchbox"><i class="biolife-icon icon-search"></i></a>
+                            <div class="mobile-search-content">
+                                <form action="search" method="post" class="form-search" name="mobile-seacrh">
+                                    <a href="#" class="btn-close"><span class="biolife-icon icon-close-menu"></span></a>
+                                    <input type="text" name="txt" class="input-text" value="" placeholder="Search here...">
+                                    <button type="submit" class="btn-submit">go</button>
+                                </form>
+                            </div>
+                        </div>
+
+                        <!-- Wishlist -->
+                        <div class="wishlist-block hidden-sm hidden-xs">
+                            <a href="wishlist.html" class="link-to">
+                                <span class="icon-qty-combine">
+                                    <i class="icon-heart-bold biolife-icon"></i>
+                                    <span class="qty">
+                                        Wish List
+                                    </span>
+                                </span>
+                            </a>
+                        </div>
+
+
+
+                        <!-- User account -->
+                        <div class="minicart-block">
+                            <div class="minicart-contain">
+                                <c:if test="${sessionScope.account != null}">
+                                </c:if>
+
+                            </div>
+                        </div>
+                        <!-- Wishlist -->
+
+
+                        <!-- Shopping cart -->
+                        <div class="minicart-block">
+                            <div class="minicart-contain">
+                                <a href="cart" class="link-to">
+                                    <span class="icon-qty-combine">
+                                        <i class="icon-cart-mini biolife-icon"></i>
+                                    </span>
+                                    <span class="title">Cart</span>
+                                </a>
+                            </div>
+                        </div>
+
+                        <!-- Mobile menu toggle -->
+                        <div class="mobile-menu-toggle">
+                            <a class="btn-toggle" data-object="open-mobile-menu" href="javascript:void(0)">
+                                <span></span>
+                                <span></span>
+                                <span></span>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="header-bottom hidden-sm hidden-xs">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-3 col-md-4">
+                    <div class="vertical-menu vertical-category-block">
+                        <div class="block-title">
+                            <span class="menu-icon">
+                                <span class="line-1"></span>
+                                <span class="line-2"></span>
+                                <span class="line-3"></span>
+                            </span>
+                            <span class="menu-title">All Categories</span>
+                            <span class="angle" data-tgleclass="fa fa-caret-down"><i class="fa fa-caret-up" aria-hidden="true"></i></span>
+                        </div>
+                        <div class="wrap-menu">
+                            <ul class="menu clone-main-menu">                            
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-9 col-md-8 padding-top-2px">
+                    <div class="header-search-bar layout-01">
+                        <form action="search" class="form-search" name="desktop-seacrh" onsubmit="return syncSearch();">
+                            <input type="hidden" name="action" value="search">
+                            <input type="text" name="txt" class="input-text" value="${param.txt}" placeholder="Search here...">
+                            <button type="submit" class="btn-submit"><i class="biolife-icon icon-search"></i></button>
+                        </form>
+                    </div>
+                    <div class="live-info">
+                        <p class="telephone"><i class="fa fa-phone" aria-hidden="true"></i><b class="phone-number">0914 145 788</b></p>
+                        <p class="working-time">7 am - 5 pm</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</header>
